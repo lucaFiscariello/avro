@@ -73,7 +73,9 @@ jobs:
           cache: maven
 
       - name: test coverage pit
-        run:  mvn test-compile org.pitest:pitest-maven:mutationCoverage -PPit -Dtest=TestSchema -DfailIfNoTests=false
+        run:  |
+          cd lang\java\avro
+          mvn test-compile org.pitest:pitest-maven:mutationCoverage -PPit -Dtest=TestSchema -DfailIfNoTests=false
 
       - name: upload report PIT
         uses: actions/upload-artifact@v3
