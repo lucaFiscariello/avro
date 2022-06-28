@@ -533,21 +533,13 @@ public class SpecificCompiler {
   /**
    * Generate output under dst, unless existing file is newer than src.
    */
-  public void compileToDestination(File src, File dst)  {
+  public void compileToDestination(File src, File dst) throws IOException {
     for (Schema schema : queue) {
       OutputFile o = compile(schema);
-      try {
-        o.writeToDestination(src, dst);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      o.writeToDestination(src, dst);
     }
     if (protocol != null) {
-      try {
-        compileInterface(protocol).writeToDestination(src, dst);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      compileInterface(protocol).writeToDestination(src, dst);
     }
   }
 
