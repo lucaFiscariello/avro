@@ -27,7 +27,7 @@ jobs:
         git checkout d2401f052027c90c93874efbbf363705aa36e657
         mvn install
     - name: test coverage badua
-      run:  mvn verify -PBadua -Dtest=TestSchema
+      run:  mvn verify -PBadua -Dtest=TestSchema -DfailIfNoTests=false
     - name: upload report Badua
       uses: actions/upload-artifact@v3
       with:
@@ -51,7 +51,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             SONAR_TOKEN: ${{ secrets.SONAR_SECRET }}
 
-          run:  mvn verify sonar:sonar -"Dsonar.login"=$SONAR_GIT_ACTIONS  -PJacoco  -Dtest=TestSchema
+          run:  mvn verify sonar:sonar -"Dsonar.login"=$SONAR_GIT_ACTIONS  -PJacoco  -Dtest=TestSchema -DfailIfNoTests=false
 
         - name: upload report Jacoco
           uses: actions/upload-artifact@v3
@@ -73,7 +73,7 @@ jobs:
           cache: maven
 
       - name: test coverage pit
-        run:  mvn test-compile org.pitest:pitest-maven:mutationCoverage -PPit -Dtest=TestSchema
+        run:  mvn test-compile org.pitest:pitest-maven:mutationCoverage -PPit -Dtest=TestSchema -DfailIfNoTests=false
 
       - name: upload report PIT
         uses: actions/upload-artifact@v3

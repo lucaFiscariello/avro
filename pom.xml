@@ -314,7 +314,7 @@
     <profile>
       <id>rat</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
+        <activeByDefault>false</activeByDefault>
       </activation>
       <build>
         <plugins>
