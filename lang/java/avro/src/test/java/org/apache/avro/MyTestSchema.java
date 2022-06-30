@@ -26,12 +26,15 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 import static org.junit.Assert.*;
 
@@ -485,73 +488,73 @@ public class MyTestSchema {
 
   }
 
-  public static class WhiteBoxTestRemove{
+  public static class WhiteBoxTestRemove {
 
-    private  Schema recordSchema ;
+    private Schema recordSchema;
 
-    public void setUP(){
-      recordSchema = Schema.createRecord("RecordTest","This is a record","Record",true);
+    public void setUP() {
+      recordSchema = Schema.createRecord("RecordTest", "This is a record", "Record", true);
     }
 
     @Test
-    public void test1(){
+    public void test1() {
       setUP();
       List<Schema.Field> fields1 = new ArrayList<>();
-      Schema.Field field = new Schema.Field("field",Schema.create(Schema.Type.STRING));
+      Schema.Field field = new Schema.Field("field", Schema.create(Schema.Type.STRING));
       fields1.add(field);
       recordSchema.setFields(fields1);
-      assertEquals(recordSchema.getFields().size(),1);
+      assertEquals(recordSchema.getFields().size(), 1);
     }
 
     @Test(expected = AvroRuntimeException.class)
-    public void test2(){
+    public void test2() {
       setUP();
       List<Schema.Field> fields = new ArrayList<>();
-      Schema.Field field = new Schema.Field("field",Schema.create(Schema.Type.STRING));
+      Schema.Field field = new Schema.Field("field", Schema.create(Schema.Type.STRING));
       fields.add(field);
       recordSchema.setFields(fields);
       recordSchema.setFields(fields);
     }
 
     @Test(expected = AvroRuntimeException.class)
-    public void test3(){
+    public void test3() {
       setUP();
       List<Schema.Field> fields = new ArrayList<>();
-      Schema.Field field = new Schema.Field("field",Schema.create(Schema.Type.STRING));
+      Schema.Field field = new Schema.Field("field", Schema.create(Schema.Type.STRING));
       fields.add(field);
       fields.add(field);
       recordSchema.setFields(fields);
     }
 
     @Test
-    public void test4(){
+    public void test4() {
       String nameStr = "name";
       String space = "";
-      Schema.Name name = new Schema.Name(nameStr,space);
+      Schema.Name name = new Schema.Name(nameStr, space);
 
-      assertEquals(name.toString(),nameStr);
+      assertEquals(name.toString(), nameStr);
     }
 
     @Test(expected = SchemaParseException.class)
-    public void test5(){
+    public void test5() {
       String nameStr = "";
       String space = "";
-      Schema.Name name = new Schema.Name(nameStr,space);
+      Schema.Name name = new Schema.Name(nameStr, space);
 
     }
 
     @Test(expected = SchemaParseException.class)
-    public void test6(){
+    public void test6() {
       String nameStr = "1nome";
       String space = "";
-      Schema.Name name = new Schema.Name(nameStr,space);
+      Schema.Name name = new Schema.Name(nameStr, space);
     }
 
     @Test(expected = SchemaParseException.class)
-    public void test7(){
+    public void test7() {
       String nameStr = "no!me";
       String space = "";
-      Schema.Name name = new Schema.Name(nameStr,space);
+      Schema.Name name = new Schema.Name(nameStr, space);
     }
 
   }
