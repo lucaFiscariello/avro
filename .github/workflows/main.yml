@@ -29,7 +29,7 @@ jobs:
     - name: test coverage badua
       run:  |
         mvn spotless:apply
-        mvn verify -PBadua -Dtest=MyTestSchema -DfailIfNoTests=false
+        mvn verify -PBadua -Dtest=MyTestSchema -Dtest=MyTestGenericDatumWriter -DfailIfNoTests=false
     - name: upload report Badua
       uses: actions/upload-artifact@v3
       with:
@@ -55,7 +55,7 @@ jobs:
 
           run:  |
             mvn spotless:apply
-            mvn verify sonar:sonar -"Dsonar.login"=$SONAR_GIT_ACTIONS  -PJacoco  -Dtest=MyTestSchema -DfailIfNoTests=false
+            mvn verify sonar:sonar -"Dsonar.login"=$SONAR_GIT_ACTIONS  -PJacoco  -Dtest=MyTestSchema -Dtest=MyTestGenericDatumWriter -DfailIfNoTests=false
 
         - name: upload report Jacoco
           uses: actions/upload-artifact@v3
@@ -80,7 +80,7 @@ jobs:
         run:  |
           mvn spotless:apply
           cd lang\java\avro
-          mvn test-compile org.pitest:pitest-maven:mutationCoverage -PPit -Dtest=MyTestSchema -DfailIfNoTests=false
+          mvn test-compile org.pitest:pitest-maven:mutationCoverage -PPit -Dtest=MyTestSchema -Dtest=MyTestGenericDatumWriter -DfailIfNoTests=false
 
       - name: upload report PIT
         uses: actions/upload-artifact@v3
