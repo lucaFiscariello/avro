@@ -17,6 +17,8 @@
  */
 package org.apache.avro.generic;
 
+import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
@@ -255,6 +257,97 @@ public class MyTestGenericDatumWriter {
       sizeWrittenSignal.countDown();
       eltAddedSignal.await();
       assertFalse(throwException.get());
+    }
+
+  }
+
+  @RunWith(MockitoJUnitRunner.class)
+  public static class TestWhiteBox {
+
+    @Mock
+    Encoder e;
+
+    public void setUp() {
+
+    }
+
+    @Test
+    public void test1() throws Exception {
+      String json = "{\"type\": \"record\", \"name\": \"r\", \"fields\": [" + "{ \"name\": \"f1\", \"type\": \"long\" }"
+          + "]}";
+      LogicalType logical = new LogicalType("Record");
+
+      Schema s = new Schema.Parser().parse(json);
+      logical.addToSchema(s);
+
+      GenericRecord r = new GenericData.Record(s);
+      r.put("f1", 100L);
+      ByteArrayOutputStream bao = new ByteArrayOutputStream();
+      GenericDatumWriter<GenericRecord> w = new GenericDatumWriter<>(s);
+      Encoder e = EncoderFactory.get().jsonEncoder(s, bao);
+      w.write(s, r, e);
+      e.flush();
+
+      Object o = new GenericDatumReader<GenericRecord>(s).read(null,
+          DecoderFactory.get().jsonDecoder(s, new ByteArrayInputStream(bao.toByteArray())));
+      assertEquals(r, o);
+
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void test2() throws Exception {
+      String json = "{\"type\": \"record\", \"name\": \"r\", \"fields\": [" + "{ \"name\": \"f1\", \"type\": \"long\" }"
+          + "]}";
+      LogicalType logical = new LogicalType("Record");
+
+      Schema s = new Schema.Parser().parse(json);
+      logical.addToSchema(s);
+
+      GenericRecord r = new GenericData.Record(s);
+      r.put("f1", null);
+      ByteArrayOutputStream bao = new ByteArrayOutputStream();
+      GenericDatumWriter<GenericRecord> w = new GenericDatumWriter<>(s);
+      Encoder e = EncoderFactory.get().jsonEncoder(s, bao);
+      w.write(s, r, e);
+      e.flush();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void test3() throws IOException {
+      String json = "{\"type\": \"map\", \"values\": \"int\" }";
+      Schema s = new Schema.Parser().parse(json);
+      GenericDatumWriter<Map<String, String>> w = new GenericDatumWriter<>(s);
+      HashMap<String, String> m = new HashMap<>();
+      m.put(null, "invalud");
+
+      ByteArrayOutputStream bao = new ByteArrayOutputStream();
+      Encoder e = EncoderFactory.get().jsonEncoder(s, bao);
+      w.write(m, e);
+    }
+
+    @Test
+    public void test4() {
+      Schema s = mock(Schema.class);
+      LogicalType logical = mock((LogicalType.class));
+      Object datum = mock(Object.class);
+
+      GenericDatumWriter<Map<String, String>> w = new GenericDatumWriter<>(s);
+
+      Object obj = w.convert(s, logical, null, datum);
+      assertNotNull(obj);
+    }
+
+    @Test(expected = AvroRuntimeException.class)
+    public void test5() {
+      String json = "{\"type\": \"map\", \"values\": \"int\" }";
+      Schema s = new Schema.Parser().parse(json);
+      GenericDatumWriter<GenericData.Array<Integer>> w = new GenericDatumWriter<>(s);
+      GenericData.Array<Integer> datum = new GenericData.Array<>(1, s);
+      datum.add(2);
+
+      LogicalType logical = new LogicalType("Array");
+      Object obj = w.convert(s, logical, null, datum);
+
     }
 
   }
