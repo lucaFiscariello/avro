@@ -17,7 +17,6 @@
  */
 package org.apache.avro.generic;
 
-import com.sun.tools.javac.jvm.Gen;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Conversion;
 import org.apache.avro.LogicalType;
@@ -26,9 +25,6 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.path.TracingNullPointException;
-import org.apache.avro.reflect.TestReflectLogicalTypes;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
