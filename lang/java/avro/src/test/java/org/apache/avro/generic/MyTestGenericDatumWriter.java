@@ -17,17 +17,24 @@
  */
 package org.apache.avro.generic;
 
+import com.sun.tools.javac.jvm.Gen;
 import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.Conversion;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
+import org.apache.avro.path.TracingNullPointException;
+import org.apache.avro.reflect.TestReflectLogicalTypes;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.ByteArrayInputStream;
@@ -43,8 +50,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 @RunWith(Enclosed.class)
 public class MyTestGenericDatumWriter {
@@ -264,13 +270,6 @@ public class MyTestGenericDatumWriter {
   @RunWith(MockitoJUnitRunner.class)
   public static class TestWhiteBox {
 
-    @Mock
-    Encoder e;
-
-    public void setUp() {
-
-    }
-
     @Test
     public void test1() throws Exception {
       String json = "{\"type\": \"record\", \"name\": \"r\", \"fields\": [" + "{ \"name\": \"f1\", \"type\": \"long\" }"
@@ -285,31 +284,44 @@ public class MyTestGenericDatumWriter {
       ByteArrayOutputStream bao = new ByteArrayOutputStream();
       GenericDatumWriter<GenericRecord> w = new GenericDatumWriter<>(s);
       Encoder e = EncoderFactory.get().jsonEncoder(s, bao);
-      w.write(s, r, e);
+
+      GenericDatumWriter<GenericRecord> wSpy = spy(w);
+      wSpy.write(s, r, e);
       e.flush();
 
       Object o = new GenericDatumReader<GenericRecord>(s).read(null,
           DecoderFactory.get().jsonDecoder(s, new ByteArrayInputStream(bao.toByteArray())));
       assertEquals(r, o);
 
+      Mockito.verify(wSpy).convert(any(), any(), any(), any());
+
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void test2() throws Exception {
-      String json = "{\"type\": \"record\", \"name\": \"r\", \"fields\": [" + "{ \"name\": \"f1\", \"type\": \"long\" }"
-          + "]}";
-      LogicalType logical = new LogicalType("Record");
 
-      Schema s = new Schema.Parser().parse(json);
-      logical.addToSchema(s);
+      Schema s = null;
+      String nameRecord = "r.f1";
 
-      GenericRecord r = new GenericData.Record(s);
-      r.put("f1", null);
-      ByteArrayOutputStream bao = new ByteArrayOutputStream();
-      GenericDatumWriter<GenericRecord> w = new GenericDatumWriter<>(s);
-      Encoder e = EncoderFactory.get().jsonEncoder(s, bao);
-      w.write(s, r, e);
-      e.flush();
+      try {
+        String json = "{\"type\": \"record\", \"name\": \"r\", \"fields\": ["
+            + "{ \"name\": \"f1\", \"type\": \"long\" }" + "]}";
+        LogicalType logical = new LogicalType("Record");
+
+        s = new Schema.Parser().parse(json);
+        logical.addToSchema(s);
+
+        GenericRecord r = new GenericData.Record(s);
+        r.put("f1", null);
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        GenericDatumWriter<GenericRecord> w = new GenericDatumWriter<>(s);
+        Encoder e = EncoderFactory.get().jsonEncoder(s, bao);
+        w.write(s, r, e);
+        e.flush();
+      } catch (TracingNullPointException e) {
+        assertTrue(e.summarize(s).toString().contains(nameRecord));
+      }
+
     }
 
     @Test(expected = NullPointerException.class)
@@ -348,6 +360,20 @@ public class MyTestGenericDatumWriter {
       LogicalType logical = new LogicalType("Array");
       Object obj = w.convert(s, logical, null, datum);
 
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void test6() {
+      String json = "{\"type\": \"record\", \"name\": \"r\", \"fields\": [" + "{ \"name\": \"f1\", \"type\": \"long\" }"
+          + "]}";
+
+      Schema s = new Schema.Parser().parse(json);
+      GenericRecord datum = new GenericData.Record(s);
+
+      GenericDatumWriter<GenericData.Record> w = new GenericDatumWriter<>(s);
+      Conversion<GenericData.Record> conversion = mock(Conversion.class);
+
+      Object obj = w.convert(s, null, conversion, datum);
     }
 
   }

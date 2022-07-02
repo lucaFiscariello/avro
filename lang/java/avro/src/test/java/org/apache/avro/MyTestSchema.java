@@ -17,6 +17,7 @@
  */
 package org.apache.avro;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(value = Enclosed.class)
 public class MyTestSchema {
@@ -45,7 +47,7 @@ public class MyTestSchema {
   public static class TestFile {
 
     public enum TypeEntry {
-      BOOL, BYTE, INT, LONG, FLOAT, RECORD, ENUM, ARRAY, MAP,
+      BOOL, BYTE, INT, LONG, FLOAT, RECORD, ENUM, ARRAY, MAP, DOUBLE, NULL
     }
 
     public enum TypeElement {
@@ -68,7 +70,11 @@ public class MyTestSchema {
               { TypeElement.VALID, TypeEntry.LONG }, { TypeElement.VALID, TypeEntry.FLOAT },
               { TypeElement.VALID, TypeEntry.RECORD }, { TypeElement.VALID, TypeEntry.ENUM },
               { TypeElement.VALID, TypeEntry.ARRAY }, { TypeElement.VALID, TypeEntry.MAP },
-              { TypeElement.NULL, TypeEntry.BOOL }, { TypeElement.NOVALID, TypeEntry.BOOL }, });
+              { TypeElement.NULL, TypeEntry.BOOL }, { TypeElement.NOVALID, TypeEntry.BOOL },
+              { TypeElement.VALID, TypeEntry.DOUBLE }, { TypeElement.NOVALID, TypeEntry.DOUBLE },
+              { TypeElement.VALID, TypeEntry.NULL }, { TypeElement.NOVALID, TypeEntry.NULL },
+
+          });
     }
 
     public TestFile(TypeElement typeelement, TypeEntry typeentry) throws JSONException {
@@ -186,6 +192,30 @@ public class MyTestSchema {
           e.printStackTrace();
         }
 
+        break;
+
+      case DOUBLE:
+        jsonObject = new JSONObject();
+        jsonObject.put("type", "double");
+        jsonObject.put("value", "double");
+
+        try (PrintWriter out = new PrintWriter(new FileWriter("file.json"))) {
+          out.write(jsonObject.toString());
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        break;
+
+      case NULL:
+        jsonObject = new JSONObject();
+        jsonObject.put("type", "null");
+        jsonObject.put("value", "nullprova");
+
+        try (PrintWriter out = new PrintWriter(new FileWriter("file.json"))) {
+          out.write(jsonObject.toString());
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         break;
 
       case ENUM:
@@ -555,6 +585,16 @@ public class MyTestSchema {
       String nameStr = "no!me";
       String space = "";
       Schema.Name name = new Schema.Name(nameStr, space);
+    }
+
+    @Test(expected = SchemaParseException.class)
+    public void testPit8() {
+      Schema.Names names = mock(Schema.Names.class);
+      JsonNode jsonNode = mock(JsonNode.class);
+
+      doReturn(null).when(names).get(any());
+      Schema.parse(jsonNode, names);
+
     }
 
   }
