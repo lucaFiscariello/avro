@@ -17,7 +17,6 @@
  */
 package org.apache.avro;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
@@ -38,7 +37,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 @RunWith(value = Enclosed.class)
 public class MyTestSchema {
@@ -71,6 +69,8 @@ public class MyTestSchema {
               { TypeElement.VALID, TypeEntry.RECORD }, { TypeElement.VALID, TypeEntry.ENUM },
               { TypeElement.VALID, TypeEntry.ARRAY }, { TypeElement.VALID, TypeEntry.MAP },
               { TypeElement.NULL, TypeEntry.BOOL }, { TypeElement.NOVALID, TypeEntry.BOOL },
+
+              // Pit
               { TypeElement.VALID, TypeEntry.DOUBLE }, { TypeElement.NOVALID, TypeEntry.DOUBLE },
               { TypeElement.VALID, TypeEntry.NULL }, { TypeElement.NOVALID, TypeEntry.NULL },
 
@@ -298,7 +298,6 @@ public class MyTestSchema {
 
       try {
         Schema schema = parser.parse(jsonFile);
-
         char[] expSort = expectedValue.toCharArray();
         char[] attualSort = schema.toString().toCharArray();
         Arrays.sort(expSort);
@@ -462,7 +461,7 @@ public class MyTestSchema {
         field.put("name", "name1");
         field.put("value", 0);
 
-        field2.put("type", "int");
+        field2.put("type", "float");
         field2.put("name", "name2");
         field2.put("value", 10);
 
@@ -585,16 +584,6 @@ public class MyTestSchema {
       String nameStr = "no!me";
       String space = "";
       Schema.Name name = new Schema.Name(nameStr, space);
-    }
-
-    @Test(expected = SchemaParseException.class)
-    public void testPit8() {
-      Schema.Names names = mock(Schema.Names.class);
-      JsonNode jsonNode = mock(JsonNode.class);
-
-      doReturn(null).when(names).get(any());
-      Schema.parse(jsonNode, names);
-
     }
 
   }

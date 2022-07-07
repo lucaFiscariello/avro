@@ -17,7 +17,6 @@
  */
 package org.apache.avro.generic;
 
-import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Conversion;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
@@ -215,7 +214,7 @@ public class MyTestGenericDatumWriter {
     }
 
     @Test
-    public void testArrayConcurrentModification() throws Exception {
+    public void testConcurrent() throws Exception {
 
       setUpArray();
       AtomicBoolean throwException = new AtomicBoolean();
@@ -238,7 +237,7 @@ public class MyTestGenericDatumWriter {
     }
 
     @Test
-    public void testMapConcurrentModification() throws Exception {
+    public void testMap() throws Exception {
 
       setUpMap();
       AtomicBoolean throwException = new AtomicBoolean();
@@ -289,6 +288,7 @@ public class MyTestGenericDatumWriter {
           DecoderFactory.get().jsonDecoder(s, new ByteArrayInputStream(bao.toByteArray())));
       assertEquals(r, o);
 
+      // Aggiunta per Mutation coverage
       Mockito.verify(wSpy).convert(any(), any(), any(), any());
 
     }
@@ -315,6 +315,7 @@ public class MyTestGenericDatumWriter {
         w.write(s, r, e);
         e.flush();
       } catch (TracingNullPointException e) {
+        // Aggiunta mutation Coverage
         assertTrue(e.summarize(s).toString().contains(nameRecord));
       }
 
@@ -330,7 +331,7 @@ public class MyTestGenericDatumWriter {
 
       ByteArrayOutputStream bao = new ByteArrayOutputStream();
       Encoder e = EncoderFactory.get().jsonEncoder(s, bao);
-      w.write(m, e);
+      w.write(s, m, e);
     }
 
     @Test
@@ -345,21 +346,8 @@ public class MyTestGenericDatumWriter {
       assertNotNull(obj);
     }
 
-    @Test(expected = AvroRuntimeException.class)
-    public void test5() {
-      String json = "{\"type\": \"map\", \"values\": \"int\" }";
-      Schema s = new Schema.Parser().parse(json);
-      GenericDatumWriter<GenericData.Array<Integer>> w = new GenericDatumWriter<>(s);
-      GenericData.Array<Integer> datum = new GenericData.Array<>(1, s);
-      datum.add(2);
-
-      LogicalType logical = new LogicalType("Array");
-      Object obj = w.convert(s, logical, null, datum);
-
-    }
-
     @Test(expected = IllegalArgumentException.class)
-    public void test6() {
+    public void test5() {
       String json = "{\"type\": \"record\", \"name\": \"r\", \"fields\": [" + "{ \"name\": \"f1\", \"type\": \"long\" }"
           + "]}";
 
